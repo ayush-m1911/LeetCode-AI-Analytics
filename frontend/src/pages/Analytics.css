@@ -1,0 +1,133 @@
+/* ===== ANALYTICS ===== */
+
+.analytics-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.analytics-header__title {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.04em;
+  margin: 0 0 4px;
+}
+
+.analytics-header__subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.analytics-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.analytics-sync-msg {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Summary bar */
+.analytics-summary {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 32px;
+  gap: 0;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.analytics-summary__item {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 16px;
+}
+
+.analytics-summary__divider {
+  width: 1px;
+  height: 36px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.analytics-summary__value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.analytics-summary__value--warn {
+  color: var(--warning);
+}
+
+.analytics-summary__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* Error */
+.analytics-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  background: rgba(6,182,212,0.06);
+  border: 1px solid rgba(6,182,212,0.2);
+  border-radius: var(--radius-md);
+  color: var(--accent-2);
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+
+/* Skeleton */
+.analytics-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Chart section */
+.analytics-chart-section {
+  margin-bottom: 32px;
+}
+
+/* Cards */
+.analytics-cards-section {
+  margin-bottom: 32px;
+}
+
+.analytics-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .analytics-cards-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .analytics-summary { padding: 16px 20px; }
+  .analytics-summary__item { min-width: 90px; }
+  .analytics-summary__divider { display: none; }
+}

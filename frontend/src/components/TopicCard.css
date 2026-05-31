@@ -1,0 +1,158 @@
+/* ===== TOPIC CARD ===== */
+.topic-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  flex: 1;
+  min-width: 280px;
+  position: relative;
+  overflow: hidden;
+  transition: all 250ms ease;
+}
+
+.topic-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.topic-card--strong:hover { border-color: rgba(16,185,129,0.3); }
+.topic-card--weak:hover   { border-color: rgba(245,158,11,0.3); }
+
+.topic-card__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.topic-card__icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.topic-card__icon-wrap--strong {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.topic-card__icon-wrap--weak {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.topic-card__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.topic-card__meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.topic-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.topic-card__empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.topic-card__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid transparent;
+  transition: all 200ms;
+}
+
+.topic-card__item:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border);
+}
+
+.topic-card__rank {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.topic-card__info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.topic-card__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topic-card__cat {
+  flex-shrink: 0;
+}
+
+.topic-card__count {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.topic-card__count--strong { color: var(--success); }
+.topic-card__count--weak   { color: var(--warning); }
+
+.topic-card__solved-label {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Bottom accent bar */
+.topic-card__accent {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+}
+
+.topic-card__accent--strong { background: linear-gradient(90deg, transparent, var(--success), transparent); }
+.topic-card__accent--weak   { background: linear-gradient(90deg, transparent, var(--warning), transparent); }
