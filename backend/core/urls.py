@@ -48,4 +48,16 @@ urlpatterns = [
         "roadmap.urls"
     )
    ),
+   path(
+    "api/mentor/",
+    include("mentor.urls")
+   ),
+   path(
+    "api/contests/",
+    include("contests.urls")
+   ),
+   path(
+    "api/recommendations/",
+    include("recommendations.urls")
+   ),
 ]

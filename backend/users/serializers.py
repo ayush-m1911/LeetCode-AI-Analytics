@@ -8,13 +8,25 @@ class RegisterSerializer(serializers.ModelSerializer):
         write_only=True,
         min_length=8
     )
+    leetcode_username = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default=""
+    )
+    github_username = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default=""
+    )
 
     class Meta:
         model = User
         fields = (
             "username",
             "email",
-            "password"
+            "password",
+            "leetcode_username",
+            "github_username",
         )
 
     def validate_email(self, value):
@@ -36,10 +48,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-
-        return User.objects.create_user(
-            **validated_data
-        )
+        leetcode = validated_data.pop("leetcode_username", "") or ""
+        github = validated_data.pop("github_username", "") or ""
+        user = User.objects.create_user(**validated_data)
+        if leetcode:
+            user.leetcode_username = leetcode
+        if github:
+            user.github_username = github
+        user.save()
+        return user
 
 class UserSerializer(serializers.ModelSerializer):
 

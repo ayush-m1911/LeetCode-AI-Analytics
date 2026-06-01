@@ -1,0 +1,77 @@
+.contest-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  transition: all var(--transition-base);
+}
+
+.contest-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+}
+
+.contest-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.contest-card-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.contest-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.contest-rank {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.contest-rank-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.rating-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+}
+
+.rating-change--pos {
+  background: rgba(34,197,94,0.12);
+  color: var(--easy);
+}
+.rating-change--neg {
+  background: rgba(239,68,68,0.12);
+  color: var(--hard);
+}
+.rating-change--zero {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-muted);
+}
+
+.contest-solved {
+  font-size: 12px;
+  color: var(--text-secondary);
+}

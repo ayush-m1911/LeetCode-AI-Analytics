@@ -45,6 +45,8 @@ export default function Roadmap() {
     try {
       const { data } = await api.post("/roadmap/generate/", { goal });
       setRoadmap(data.roadmap);
+      // Store timestamp for Home page Recent Activity
+      localStorage.setItem("lastRoadmapGenerated", new Date().toISOString());
     } catch (err) {
       const msg =
         err.response?.data?.error ||

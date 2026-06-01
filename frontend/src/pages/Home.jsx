@@ -13,7 +13,6 @@ const FEATURE_CARDS = [
     description: "View your complete profile, coding statistics, and progress at a glance.",
     icon: <DashboardIcon />,
     color: "accent",
-    active: true,
   },
   {
     to: "/analytics",
@@ -21,7 +20,6 @@ const FEATURE_CARDS = [
     description: "Explore topic-wise strengths and weaknesses with deep visual analytics.",
     icon: <AnalyticsIcon />,
     color: "cyan",
-    active: true,
   },
   {
     to: "/roadmap",
@@ -29,42 +27,72 @@ const FEATURE_CARDS = [
     description: "Generate a personalized 4-week DSA preparation roadmap powered by AI.",
     icon: <RoadmapIcon />,
     color: "easy",
-    active: true,
+  },
+  {
+    to: "/roadmaps",
+    title: "Roadmap History",
+    description: "Browse and compare all your previously generated AI roadmaps.",
+    icon: <HistoryIcon />,
+    color: "medium",
+  },
+  {
+    to: "/profile",
+    title: "Profile",
+    description: "Manage your account, coding profiles, and LeetCode/GitHub usernames.",
+    icon: <ProfileIcon />,
+    color: "purple",
   },
 ];
 
-const COMING_SOON = [
+const MORE_FEATURE_CARDS = [
   {
+    to: "/mentor",
     title: "AI Mentor",
-    description: "One-on-one AI coaching sessions for targeted improvement.",
+    description: "One-on-one AI coaching sessions for targeted DSA improvement.",
     icon: "🤖",
     color: "purple",
   },
   {
+    to: "/contests",
     title: "Contest Analytics",
-    description: "Deep-dive into your contest performance over time.",
+    description: "Deep-dive into your contest performance, rating trends, and rankings.",
     icon: "🏆",
     color: "amber",
   },
   {
-    title: "Rating Prediction",
-    description: "ML-powered contest rating predictor.",
-    icon: "📈",
+    to: "/recommendations",
+    title: "Problem Recommender",
+    description: "AI-curated problem sets based on your weak topics and skill gaps.",
+    icon: "🎯",
     color: "cyan",
   },
   {
-    title: "Problem Recommender",
-    description: "AI-curated problem sets based on your gaps.",
-    icon: "🎯",
+    to: "/github",
+    title: "GitHub Analytics",
+    description: "Explore your GitHub repositories, language stats, and recent activity.",
+    icon: "🐙",
     color: "pink",
   },
 ];
+
+
+const fmtDateTime = (iso) => {
+  if (!iso) return null;
+  return new Date(iso).toLocaleString("en-US", {
+    year: "numeric", month: "short", day: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+  });
+};
 
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Recent activity — timestamps
+  const [lastAnalyticsSync, setLastAnalyticsSync] = useState(null);
+  const [lastRoadmap, setLastRoadmap] = useState(null);
 
   useEffect(() => {
     if (!localStorage.getItem("access")) {
@@ -73,9 +101,16 @@ export default function Home() {
     }
 
     api.get("/analytics/dashboard/")
-      .then((r) => setStats(r.data))
-      .catch(() => {}) // Stats may not exist yet; that's fine
+      .then((r) => {
+        setStats(r.data);
+        if (r.data?.updated_at) setLastAnalyticsSync(r.data.updated_at);
+      })
+      .catch(() => {})
       .finally(() => setLoading(false));
+
+    // Roadmap timestamp is stored in localStorage when user generates one
+    const roadmapTs = localStorage.getItem("lastRoadmapGenerated");
+    if (roadmapTs) setLastRoadmap(roadmapTs);
   }, [navigate]);
 
   const greeting = () => {
@@ -198,28 +233,77 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Coming soon */}
+        {/* Recent Activity */}
+        <section className="home-activity animate-fadeInUp">
+          <div className="section-header">
+            <div>
+              <h2 className="section-title">Recent Activity</h2>
+              <p className="section-subtitle">Your latest actions</p>
+            </div>
+          </div>
+
+          <div className="home-activity__grid">
+            <ActivityCard
+              icon={<SyncActivityIcon />}
+              label="Last Analytics Sync"
+              value={lastAnalyticsSync ? fmtDateTime(lastAnalyticsSync) : null}
+              empty="No syncs yet — go to Dashboard to sync"
+              color="accent"
+              linkTo="/dashboard"
+            />
+            <ActivityCard
+              icon={<RoadmapActivityIcon />}
+              label="Latest Roadmap Generated"
+              value={lastRoadmap ? fmtDateTime(lastRoadmap) : null}
+              empty="No roadmap yet — go to AI Roadmap"
+              color="easy"
+              linkTo="/roadmap"
+            />
+          </div>
+        </section>
+
+        {/* More AI Features */}
         <section className="home-coming-soon">
           <div className="section-header">
             <div>
-              <h2 className="section-title">Coming Soon</h2>
-              <p className="section-subtitle">Features in development</p>
+              <h2 className="section-title">AI-Powered Features</h2>
+              <p className="section-subtitle">Advanced tools to supercharge your preparation</p>
             </div>
           </div>
 
           <div className="home-coming-grid stagger-children">
-            {COMING_SOON.map(({ title, description, icon, color }) => (
-              <div key={title} className={`home-coming-card animate-fadeInUp`}>
-                <div className="coming-soon-overlay">Coming Soon</div>
+            {MORE_FEATURE_CARDS.map(({ to, title, description, icon }) => (
+              <Link key={title} to={to} className="home-coming-card animate-fadeInUp" style={{ textDecoration: "none" }}>
                 <div className="home-coming-card__icon">{icon}</div>
                 <h3 className="home-coming-card__title">{title}</h3>
                 <p className="home-coming-card__desc">{description}</p>
-              </div>
+                <div style={{ marginTop: "auto", fontSize: 12, color: "var(--accent)", fontWeight: 600 }}>Open →</div>
+              </Link>
             ))}
           </div>
         </section>
       </main>
     </div>
+  );
+}
+
+/* ===== Activity Card ===== */
+function ActivityCard({ icon, label, value, empty, color, linkTo }) {
+  return (
+    <Link to={linkTo} className={`home-activity-card home-activity-card--${color}`}>
+      <div className={`home-activity-card__icon home-activity-card__icon--${color}`}>
+        {icon}
+      </div>
+      <div className="home-activity-card__body">
+        <span className="home-activity-card__label">{label}</span>
+        {value ? (
+          <span className="home-activity-card__value">{value}</span>
+        ) : (
+          <span className="home-activity-card__empty">{empty}</span>
+        )}
+      </div>
+      <span className="home-activity-card__arrow">→</span>
+    </Link>
   );
 }
 
@@ -258,6 +342,25 @@ function RoadmapIcon() {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10"/>
       <polygon points="10 8 16 12 10 16 10 8"/>
+    </svg>
+  );
+}
+
+function HistoryIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+      <path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>
+    </svg>
+  );
+}
+
+
+function ProfileIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
     </svg>
   );
 }
@@ -316,6 +419,24 @@ function HardIcon() {
       <path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/>
       <path d="M22 13h-4"/>
       <path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/>
+    </svg>
+  );
+}
+
+function SyncActivityIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 4 23 10 17 10"/>
+      <polyline points="1 20 1 14 7 14"/>
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+    </svg>
+  );
+}
+
+function RoadmapActivityIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
     </svg>
   );
 }

@@ -1,0 +1,93 @@
+.github-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  position: relative;
+  overflow: hidden;
+}
+
+.github-card::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(ellipse, rgba(139,92,246,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.github-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-full);
+  border: 3px solid rgba(139,92,246,0.4);
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.github-avatar-placeholder {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-full);
+  background: var(--grad-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+  color: white;
+  flex-shrink: 0;
+}
+
+.github-info {
+  flex: 1;
+}
+
+.github-username {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.github-bio {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: var(--space-1);
+  line-height: 1.5;
+}
+
+.github-follow-row {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.github-follow-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.github-follow-count {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+@media (max-width: 600px) {
+  .github-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  .github-follow-row { justify-content: center; }
+}

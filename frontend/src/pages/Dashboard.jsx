@@ -5,15 +5,26 @@ import { useAuth } from "../context/AuthContext";
 import StatsCard from "../components/StatsCard";
 import ProfileCard from "../components/ProfileCard";
 import Navbar from "../components/Navbar";
+import RefreshButton from "../components/RefreshButton";
+import { ToastContainer, useToast } from "../components/Toast";
 import "./Dashboard.css";
+
+const fmtDateTime = (iso) => {
+  if (!iso) return null;
+  return new Date(iso).toLocaleString("en-US", {
+    year: "numeric", month: "short", day: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+  });
+};
 
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toasts, showToast, removeToast } = useToast();
+
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -29,7 +40,7 @@ export default function Dashboard() {
       setStats(data);
     } catch (err) {
       if (err.response?.status === 404) {
-        setError("No stats yet. Click \"Sync Stats\" to fetch your LeetCode data.");
+        setError("No stats yet. Click \"Refresh Analytics\" to fetch your LeetCode data.");
       } else {
         setError("Failed to load stats. Please try again.");
       }
@@ -40,17 +51,16 @@ export default function Dashboard() {
 
   const handleSync = async () => {
     if (!user?.leetcode_username) {
-      setSyncMsg("⚠️  Set your LeetCode username in your profile first.");
+      showToast("info", "Set your LeetCode username in Profile first.");
       return;
     }
     setSyncing(true);
-    setSyncMsg("");
     try {
       await api.post("/analytics/sync/");
-      setSyncMsg("✅  Stats synced successfully!");
       await fetchStats();
+      showToast("success", "Analytics Updated Successfully");
     } catch {
-      setSyncMsg("❌  Sync failed. Please try again.");
+      showToast("error", "Unable to refresh analytics");
     } finally {
       setSyncing(false);
     }
@@ -65,6 +75,7 @@ export default function Dashboard() {
     <div className="page-wrapper">
       <div className="bg-animated" />
       <Navbar />
+      <ToastContainer toasts={toasts} onClose={removeToast} />
 
       <main className="main-content">
         {/* Page header */}
@@ -76,26 +87,17 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="dashboard-header__actions">
-            {syncMsg && (
-              <span className="dashboard-sync-msg">{syncMsg}</span>
+            {stats?.updated_at && (
+              <span className="dashboard-last-updated">
+                <ClockIcon /> Last updated: {fmtDateTime(stats.updated_at)}
+              </span>
             )}
-            <button
-              className="btn btn-primary btn-sm"
+            <RefreshButton
+              loading={syncing}
               onClick={handleSync}
-              disabled={syncing}
-            >
-              {syncing ? (
-                <>
-                  <span className="login-spinner" style={{ width: 13, height: 13, borderWidth: 2 }} />
-                  Syncing…
-                </>
-              ) : (
-                <>
-                  <SyncIcon />
-                  Sync Stats
-                </>
-              )}
-            </button>
+              label="Refresh Analytics"
+              loadingLabel="Refreshing LeetCode Data…"
+            />
           </div>
         </div>
 
@@ -215,7 +217,7 @@ export default function Dashboard() {
                   <div className="dashboard-no-stats card">
                     <EmptyIcon />
                     <p>No stats data yet.</p>
-                    <span>Click "Sync Stats" above to fetch your LeetCode data.</span>
+                    <span>Click "Refresh Analytics" above to fetch your LeetCode data.</span>
                   </div>
                 )}
               </div>
@@ -258,16 +260,14 @@ function LegendItem({ color, label, value }) {
 }
 
 /* Icons */
-function SyncIcon() {
+function ClockIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 4 23 10 17 10"/>
-      <polyline points="1 20 1 14 7 14"/>
-      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
     </svg>
   );
 }
-
 function CheckIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -275,7 +275,6 @@ function CheckIcon() {
     </svg>
   );
 }
-
 function TrophyIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -288,7 +287,6 @@ function TrophyIcon() {
     </svg>
   );
 }
-
 function InfoIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -298,7 +296,6 @@ function InfoIcon() {
     </svg>
   );
 }
-
 function EmptyIcon() {
   return (
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-muted)', marginBottom: 12 }}>

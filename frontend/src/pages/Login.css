@@ -248,6 +248,28 @@
   color: var(--text-muted);
 }
 
+/* Register link */
+.login-card__register {
+  text-align: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.login-card__register-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.login-register-link {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.login-register-link:hover { color: #a78bfa; }
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .login-container {

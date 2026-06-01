@@ -4,20 +4,33 @@ import api from "../api/axios";
 import TopicChart from "../components/TopicChart";
 import TopicCard from "../components/TopicCard";
 import Navbar from "../components/Navbar";
+import RefreshButton from "../components/RefreshButton";
 import { useAuth } from "../context/AuthContext";
+import { ToastContainer, useToast } from "../components/Toast";
 import "./Analytics.css";
+
+const fmtDateTime = (iso) => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return (
+    d.toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" }) +
+    " " +
+    d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+  );
+};
 
 export default function Analytics() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toasts, showToast, removeToast } = useToast();
 
   const [topics, setTopics] = useState([]);
   const [strongTopics, setStrongTopics] = useState([]);
   const [weakTopics, setWeakTopics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState("");
   const [error, setError] = useState("");
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
     if (!localStorage.getItem("access")) { navigate("/"); return; }
@@ -36,6 +49,7 @@ export default function Analytics() {
       setTopics(topicsRes.data);
       setStrongTopics(strongRes.data);
       setWeakTopics(weakRes.data);
+      setLastUpdated(new Date().toISOString());
     } catch (err) {
       setError("No topic data found. Sync your topics to see analytics.");
       console.error(err);
@@ -46,17 +60,16 @@ export default function Analytics() {
 
   const handleSyncTopics = async () => {
     if (!user?.leetcode_username) {
-      setSyncMsg("⚠️  Set your LeetCode username in Dashboard first.");
+      showToast("info", "Set your LeetCode username in Profile first.");
       return;
     }
     setSyncing(true);
-    setSyncMsg("");
     try {
       await api.post("/analytics/topics/sync/");
-      setSyncMsg("✅  Topics synced!");
       await fetchAnalytics();
+      showToast("success", "Topics Refreshed Successfully");
     } catch {
-      setSyncMsg("❌  Sync failed. Please try again.");
+      showToast("error", "Unable to refresh topics");
     } finally {
       setSyncing(false);
     }
@@ -73,6 +86,7 @@ export default function Analytics() {
     <div className="page-wrapper">
       <div className="bg-animated" />
       <Navbar />
+      <ToastContainer toasts={toasts} onClose={removeToast} />
 
       <main className="main-content">
         {/* Header */}
@@ -84,24 +98,18 @@ export default function Analytics() {
             </p>
           </div>
           <div className="analytics-header__actions">
-            {syncMsg && <span className="analytics-sync-msg">{syncMsg}</span>}
-            <button
-              className="btn btn-primary btn-sm"
+            {lastUpdated && (
+              <span className="analytics-last-updated">
+                <ClockIcon />
+                Last Updated: {fmtDateTime(lastUpdated)}
+              </span>
+            )}
+            <RefreshButton
+              loading={syncing}
               onClick={handleSyncTopics}
-              disabled={syncing}
-            >
-              {syncing ? (
-                <>
-                  <span className="login-spinner" style={{ width: 13, height: 13, borderWidth: 2 }} />
-                  Syncing…
-                </>
-              ) : (
-                <>
-                  <SyncIcon />
-                  Sync Topics
-                </>
-              )}
-            </button>
+              label="Refresh Topics"
+              loadingLabel="Refreshing Topics…"
+            />
           </div>
         </div>
 
@@ -195,12 +203,11 @@ export default function Analytics() {
   );
 }
 
-function SyncIcon() {
+function ClockIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 4 23 10 17 10"/>
-      <polyline points="1 20 1 14 7 14"/>
-      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
     </svg>
   );
 }

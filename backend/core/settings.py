@@ -45,6 +45,9 @@ INSTALLED_APPS = [
     'users',
     'analytics',
     'roadmap',
+    'mentor',
+    'contests',
+    'recommendations',
     'corsheaders',
 ]
 

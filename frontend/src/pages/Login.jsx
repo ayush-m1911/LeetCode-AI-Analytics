@@ -188,6 +188,14 @@ export default function Login() {
             </button>
           </form>
 
+          {/* Register link */}
+          <div className="login-card__register">
+            <p className="login-card__register-text">
+              Don't have an account?{" "}
+              <Link to="/register" className="login-register-link">Register</Link>
+            </p>
+          </div>
+
           {/* Footer */}
           <div className="login-card__footer">
             <p className="login-card__footer-text">
