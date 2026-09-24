@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
 import ChatMessage from "../components/ChatMessage";
-import api from "../api/axios";
+import api, { API_BASE_URL } from "../api/axios";
+
 import "./Mentor.css";
 
 const SUGGESTIONS = [
@@ -47,8 +48,8 @@ export default function Mentor() {
     // Reset textarea height
     if (textareaRef.current) textareaRef.current.style.height = "48px";
 
-    const apiBase = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/";
-    const streamUrl = `${apiBase.replace(/\/$/, "")}/mentor/chat/stream/`;
+    const streamUrl = `${API_BASE_URL}mentor/chat/stream/`;
+
 
     try {
       const response = await fetch(streamUrl, {

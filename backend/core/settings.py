@@ -33,8 +33,9 @@ SECRET_KEY = os.getenv(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "t")
 
-allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1")
+allowed_hosts_env = os.getenv("ALLOWED_HOSTS", ".onrender.com,leetcode-ai-analytics.onrender.com,localhost,127.0.0.1")
 ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(",") if h.strip()]
+
 
 
 # Application definition
@@ -184,8 +185,36 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = 'users.User'
 
-cors_origins = os.getenv(
+cors_origins_env = os.getenv(
     "CORS_ALLOWED_ORIGINS",
-    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000"
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,https://leetcode-ai-frontend.onrender.com"
 )
-CORS_ALLOWED_ORIGINS = [o.strip() for o in cors_origins.split(",") if o.strip()]
+CORS_ALLOWED_ORIGINS = [
+    o.strip().rstrip("/")
+    for o in cors_origins_env.split(",")
+    if o.strip()
+]
+
+# Ensure Render frontend is always included
+if "https://leetcode-ai-frontend.onrender.com" not in CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS.append("https://leetcode-ai-frontend.onrender.com")
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{o.replace('https://', '').replace('http://', '')}"
+    for o in CORS_ALLOWED_ORIGINS
+    if "localhost" not in o and "127.0.0.1" not in o
+]
+

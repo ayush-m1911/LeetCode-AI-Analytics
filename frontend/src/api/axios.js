@@ -1,6 +1,18 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/";
+// Normalize API base URL: ensure it starts with http, ends with /api/
+let envUrl = import.meta.env.VITE_API_BASE_URL || "";
+if (!envUrl || !envUrl.startsWith("http")) {
+  envUrl = "https://leetcode-ai-analytics.onrender.com/api/";
+}
+if (!envUrl.endsWith("/")) {
+  envUrl += "/";
+}
+if (!envUrl.endsWith("/api/")) {
+  envUrl += "api/";
+}
+
+export const API_BASE_URL = envUrl;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,12 +21,15 @@ const api = axios.create({
   },
 });
 
-// Attach access token to every request
+// Attach access token and strip leading slash so Axios doesn't strip /api/ subpath
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (config.url && config.url.startsWith("/")) {
+      config.url = config.url.slice(1);
     }
     return config;
   },
@@ -34,7 +49,7 @@ api.interceptors.response.use(
         const refresh = localStorage.getItem("refresh");
         if (!refresh) throw new Error("No refresh token");
 
-        const refreshUrl = `${API_BASE_URL.replace(/\/$/, "")}/token/refresh/`;
+        const refreshUrl = `${API_BASE_URL}token/refresh/`;
         const { data } = await axios.post(refreshUrl, { refresh });
 
         localStorage.setItem("access", data.access);
@@ -54,4 +69,4 @@ api.interceptors.response.use(
   }
 );
 
-export default api;
+export default api;
