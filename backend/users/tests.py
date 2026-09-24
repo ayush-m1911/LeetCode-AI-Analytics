@@ -11,8 +11,9 @@ class UserAuthTests(TestCase):
         self.client = APIClient()
         self.register_url = "/api/users/register/"
         self.me_url = "/api/users/me/"
-        self.update_url = "/api/users/update/"
+        self.update_url = "/api/users/profile/"
         self.token_url = "/api/token/"
+
 
         self.user = User.objects.create_user(
             username="testuser",

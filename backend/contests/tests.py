@@ -56,5 +56,6 @@ class ContestsTests(TestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(self.history_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["contests"]), 1)
-        self.assertEqual(response.data["contests"][0]["contest_title"], "Biweekly Contest 120")
+        self.assertEqual(len(response.data["history"]), 1)
+        self.assertEqual(response.data["history"][0]["contest_title"], "Biweekly Contest 120")
+

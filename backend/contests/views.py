@@ -69,5 +69,7 @@ class ContestHistoryView(APIView):
                 "average_rank": avg_rank,
                 "best_rating": round(best_rating, 1),
             },
-            "history": contest_list
+            "history": contest_list,
+            "contests": contest_list,
         })
+
