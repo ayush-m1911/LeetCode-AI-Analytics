@@ -1,10 +1,15 @@
 import os
 import json
+import re
 from groq import Groq
 
-client = Groq(
-    api_key=os.getenv("GROQ_API_KEY")
-)
+
+def get_groq_client():
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not configured in backend environment variables.")
+    return Groq(api_key=api_key)
+
 
 def generate_dsa_roadmap(goal, total_solved, ranking, weak_topics, strong_topics):
     prompt = f"""
@@ -20,10 +25,10 @@ Problems Solved:
 {total_solved}
 
 Weak Topics:
-{', '.join(weak_topics)}
+{', '.join(weak_topics) if weak_topics else 'Not analyzed yet'}
 
 Strong Topics:
-{', '.join(strong_topics)}
+{', '.join(strong_topics) if strong_topics else 'Not analyzed yet'}
 
 Requirements:
 
@@ -51,8 +56,10 @@ Format:
 }}
 """
 
+    client = get_groq_client()
+    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=model_name,
         messages=[
             {
                 "role": "user",
@@ -61,6 +68,8 @@ Format:
         ],
         temperature=0.7
     )
+
+
 
     import json
     import re

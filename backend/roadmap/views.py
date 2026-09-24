@@ -15,54 +15,62 @@ from .serializers import RoadmapListSerializer, RoadmapDetailSerializer
 class GenerateRoadmapView(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_scope = "ai_generation"
 
     def post(self, request):
         goal = request.data.get("goal")
-        stats = UserStats.objects.get(
-    user=request.user
-)
+        if not goal:
+            return Response(
+                {"error": "Please provide a goal for the roadmap."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            stats = UserStats.objects.get(user=request.user)
+        except UserStats.DoesNotExist:
+            return Response(
+                {"error": "No stats found. Please sync your LeetCode profile on the Dashboard first."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         weak_topics = list(
-    TopicStats.objects.filter(
-        user=request.user
-    )
-    .order_by("solved_count")
-    .values_list(
-        "topic_name",
-        flat=True
-    )[:5]
-)
+            TopicStats.objects.filter(user=request.user)
+            .order_by("solved_count")
+            .values_list("topic_name", flat=True)[:5]
+        )
         strong_topics = list(
-    TopicStats.objects.filter(
-        user=request.user
-    )
-    .order_by("-solved_count")
-    .values_list(
-        "topic_name",
-        flat=True
-    )[:5]
-)
-        roadmap = generate_dsa_roadmap(
-    goal=goal,
-    total_solved=stats.total_solved,
-    ranking=stats.ranking,
-    weak_topics=weak_topics,
-    strong_topics=strong_topics
-)
-        Roadmap.objects.create(
-    user=request.user,
-    goal=goal,
+            TopicStats.objects.filter(user=request.user)
+            .order_by("-solved_count")
+            .values_list("topic_name", flat=True)[:5]
+        )
 
-    ranking=stats.ranking,
-    total_solved=stats.total_solved,
+        try:
+            roadmap = generate_dsa_roadmap(
+                goal=goal,
+                total_solved=stats.total_solved,
+                ranking=stats.ranking,
+                weak_topics=weak_topics,
+                strong_topics=strong_topics
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"AI service error: {str(e)}"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
 
-    weak_topics=weak_topics,
-    strong_topics=strong_topics,
-
-    roadmap=roadmap
-)
+        created_roadmap = Roadmap.objects.create(
+            user=request.user,
+            goal=goal,
+            ranking=stats.ranking,
+            total_solved=stats.total_solved,
+            weak_topics=weak_topics,
+            strong_topics=strong_topics,
+            roadmap=roadmap
+        )
         return Response({
-    "roadmap": roadmap
-})
+            "id": created_roadmap.id,
+            "roadmap": roadmap
+        }, status=status.HTTP_201_CREATED)
 
 
 class RoadmapListView(APIView):

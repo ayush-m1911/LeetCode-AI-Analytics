@@ -46,6 +46,7 @@ def build_stats_context(user):
 
 class ChatView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_scope = "ai_generation"
 
     def post(self, request):
         """Send a message and get AI reply."""

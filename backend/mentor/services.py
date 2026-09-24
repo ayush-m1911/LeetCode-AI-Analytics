@@ -1,9 +1,16 @@
 import os
 from groq import Groq
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+def get_groq_client():
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not configured in backend environment variables.")
+    return Groq(api_key=api_key)
+
 
 SYSTEM_PROMPT = """You are an expert DSA (Data Structures & Algorithms) mentor and LeetCode coach.
+
 You help competitive programmers improve their skills, identify weaknesses, and prepare for technical interviews.
 You are direct, encouraging, and highly knowledgeable.
 Always give actionable, specific advice tailored to the user's stats.
@@ -52,11 +59,15 @@ def ask_mentor(user_message: str, stats_context: dict, history: list) -> str:
         "content": user_message
     })
 
+    client = get_groq_client()
+    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=model_name,
         messages=messages,
         temperature=0.75,
         max_tokens=1024
     )
 
+
     return response.choices[0].message.content
+

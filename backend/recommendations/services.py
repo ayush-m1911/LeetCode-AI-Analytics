@@ -3,7 +3,13 @@ import json
 import re
 from groq import Groq
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+def get_groq_client():
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not configured in backend environment variables.")
+    return Groq(api_key=api_key)
+
 
 PROMPT_TEMPLATE = """You are an expert LeetCode coach. Generate exactly 9 problem recommendations (3 Easy, 3 Medium, 3 Hard) based on the user's profile.
 
@@ -56,11 +62,15 @@ def generate_recommendations(stats_context: dict) -> list:
         strong_topics=", ".join(stats_context.get("strong_topics", [])) or "Not analyzed",
     )
 
+    client = get_groq_client()
+    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=model_name,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.4,
     )
+
+
 
     raw = response.choices[0].message.content.strip()
 

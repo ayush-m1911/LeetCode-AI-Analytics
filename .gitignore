@@ -35,3 +35,12 @@ htmlcov/
 # Uncomment ONLY if you don't want migrations in Git
 # */migrations/*
 # !*/migrations/__init__.py
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+.env
+.env.local
+
+LeetCode_Analytics_AI_SDD_Interview_Guide.pdf

@@ -37,6 +37,7 @@ def build_stats_context(user):
 
 class GenerateRecommendationsView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_scope = "ai_generation"
 
     def post(self, request):
         stats_context = build_stats_context(request.user)
