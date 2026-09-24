@@ -2,12 +2,23 @@ import "./RoadmapCard.css";
 
 const WEEK_COLORS = ["accent", "cyan", "easy", "medium"];
 
-export default function RoadmapCard({ weekKey, data, index = 0 }) {
+export default function RoadmapCard({
+  weekKey,
+  data,
+  index = 0,
+  completedItems = [],
+  onToggleItem = null
+}) {
   const color = WEEK_COLORS[index % WEEK_COLORS.length];
   const weekLabel = weekKey
     .replace(/_/g, " ")
     .replace(/\bweek\b/i, "Week")
     .toUpperCase();
+
+  const problems = data.recommended_problems || [];
+  const completedCount = problems.filter((p) =>
+    completedItems.includes(`${weekKey}-${p}`)
+  ).length;
 
   return (
     <div
@@ -22,6 +33,11 @@ export default function RoadmapCard({ weekKey, data, index = 0 }) {
         <div className={`roadmap-card__week-badge roadmap-card__week-badge--${color}`}>
           {weekLabel}
         </div>
+        {problems.length > 0 && (
+          <span className="roadmap-card__progress-badge">
+            {completedCount}/{problems.length} Done
+          </span>
+        )}
       </div>
 
       {/* Focus Topics */}
@@ -50,6 +66,46 @@ export default function RoadmapCard({ weekKey, data, index = 0 }) {
         </div>
       )}
 
+      {/* Recommended Problems with Checkboxes */}
+      {problems.length > 0 && (
+        <div className="roadmap-card__section">
+          <div className="roadmap-card__section-label">
+            <ChecklistIcon /> Recommended Practice
+          </div>
+          <div className="roadmap-card__problems-list">
+            {problems.map((problem) => {
+              const itemId = `${weekKey}-${problem}`;
+              const isDone = completedItems.includes(itemId);
+              const slug = problem.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+              const leetcodeUrl = `https://leetcode.com/problems/${slug}/`;
+
+              return (
+                <div key={problem} className={`roadmap-problem-item ${isDone ? "is-completed" : ""}`}>
+                  <button
+                    type="button"
+                    className={`roadmap-problem-check ${isDone ? "checked" : ""}`}
+                    onClick={() => onToggleItem && onToggleItem(itemId)}
+                    title={isDone ? "Mark incomplete" : "Mark completed"}
+                  >
+                    {isDone ? "✓" : ""}
+                  </button>
+                  <span className="roadmap-problem-name">{problem}</span>
+                  <a
+                    href={leetcodeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="roadmap-problem-link"
+                    title="Open problem on LeetCode"
+                  >
+                    Solve ↗
+                  </a>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Difficulty Progression */}
       {data.difficulty_progression && (
         <div className="roadmap-card__section">
@@ -74,6 +130,7 @@ export default function RoadmapCard({ weekKey, data, index = 0 }) {
     </div>
   );
 }
+
 
 function FocusIcon() {
   return (
@@ -112,3 +169,13 @@ function AdviceIcon() {
     </svg>
   );
 }
+
+function ChecklistIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 11l3 3L22 4"/>
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+  );
+}
+

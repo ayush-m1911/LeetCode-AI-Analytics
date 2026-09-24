@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
+import RoadmapCard from "../components/RoadmapCard";
 import api from "../api/axios";
 import "./Roadmaps.css";
+
 
 function fmtDate(iso) {
   if (!iso) return "—";
@@ -34,6 +36,23 @@ export default function Roadmaps() {
     setDetailLoading(false);
   };
 
+  const handleToggleItem = async (itemId) => {
+    if (!selected) return;
+    const prevCompleted = selected.completed_items || [];
+    const nextCompleted = prevCompleted.includes(itemId)
+      ? prevCompleted.filter((id) => id !== itemId)
+      : [...prevCompleted, itemId];
+
+    setSelected((prev) => ({ ...prev, completed_items: nextCompleted }));
+    setRoadmaps((prev) =>
+      prev.map((r) => (r.id === selected.id ? { ...r, completed_items: nextCompleted } : r))
+    );
+
+    try {
+      await api.patch(`/roadmap/${selected.id}/toggle-item/`, { item_id: itemId });
+    } catch {}
+  };
+
   return (
     <div className="page-wrapper">
       <div className="bg-animated" />
@@ -45,7 +64,7 @@ export default function Roadmaps() {
           <div className="section-header">
             <div>
               <h1 className="section-title" style={{ fontSize: 28 }}>Roadmap History</h1>
-              <p className="section-subtitle">All your AI-generated DSA roadmaps — click to view details</p>
+              <p className="section-subtitle">All your AI-generated DSA roadmaps — click to view details and track progress</p>
             </div>
             <Link to="/roadmap" className="btn btn-primary btn-sm">
               <PlusIcon /> Generate New
@@ -110,12 +129,23 @@ export default function Roadmaps() {
                 ) : selected ? (
                   <>
                     <h2 className="roadmap-modal-title">{selected.goal}</h2>
-                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
                       <span className="rhc-chip">📅 {fmtDate(selected.created_at)}</span>
                       {selected.ranking && <span className="rhc-chip">🏅 Rank #{selected.ranking?.toLocaleString()}</span>}
                       {selected.total_solved && <span className="rhc-chip">✅ {selected.total_solved} solved</span>}
                     </div>
-                    <RoadmapContent roadmap={selected.roadmap} />
+                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                      {Object.entries(selected.roadmap || {}).map(([week, data], i) => (
+                        <RoadmapCard
+                          key={week}
+                          weekKey={week}
+                          data={data}
+                          index={i}
+                          completedItems={selected.completed_items || []}
+                          onToggleItem={handleToggleItem}
+                        />
+                      ))}
+                    </div>
                   </>
                 ) : null}
               </motion.div>
@@ -126,6 +156,7 @@ export default function Roadmaps() {
     </div>
   );
 }
+
 
 function RoadmapHistoryCard({ roadmap, index, onClick }) {
   return (

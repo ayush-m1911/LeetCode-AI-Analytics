@@ -35,6 +35,14 @@ class Roadmap(models.Model):
         default=dict
     )
 
+    completed_items = models.JSONField(
+        default=list,
+        blank=True
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+
+    def __str__(self):
+        return f"{self.user.username} - {self.goal}"

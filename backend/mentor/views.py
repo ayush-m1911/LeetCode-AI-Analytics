@@ -96,3 +96,53 @@ class ChatView(APIView):
         session = get_or_create_session(request.user)
         ChatMessage.objects.filter(session=session).delete()
         return Response({"message": "Chat history cleared."})
+
+
+from django.http import StreamingHttpResponse
+import json
+from .services import stream_mentor
+
+
+class StreamChatView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_scope = "ai_generation"
+
+    def post(self, request):
+        """Stream real-time AI replies token by token via Server-Sent Events."""
+        serializer = SendMessageSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user_message = serializer.validated_data["message"]
+        session = get_or_create_session(request.user)
+
+        history_qs = ChatMessage.objects.filter(session=session).order_by("timestamp")
+        history = [{"role": m.role, "content": m.content} for m in history_qs]
+        stats_context = build_stats_context(request.user)
+
+        ChatMessage.objects.create(session=session, role="user", content=user_message)
+
+        def event_stream():
+            full_reply = []
+            try:
+                for chunk in stream_mentor(user_message, stats_context, history):
+                    full_reply.append(chunk)
+                    yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            finally:
+                complete_text = "".join(full_reply)
+                if complete_text:
+                    assistant_msg = ChatMessage.objects.create(
+                        session=session, role="assistant", content=complete_text
+                    )
+                    yield f"data: {json.dumps({'done': True, 'id': assistant_msg.id})}\n\n"
+
+        response = StreamingHttpResponse(
+            event_stream(),
+            content_type="text/event-stream"
+        )
+        response['Cache-Control'] = 'no-cache'
+        response['X-Accel-Buffering'] = 'no'
+        return response
+

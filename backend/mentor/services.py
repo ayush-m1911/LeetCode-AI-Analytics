@@ -18,11 +18,7 @@ When suggesting problems, reference real LeetCode problem names.
 Keep responses concise but impactful — use markdown formatting with bullet points."""
 
 
-def ask_mentor(user_message: str, stats_context: dict, history: list) -> str:
-    """
-    Call Groq with user message + injected stats context + chat history.
-    Returns the AI reply string.
-    """
+def _build_mentor_messages(user_message: str, stats_context: dict, history: list) -> list:
     ranking = stats_context.get("ranking", "Unknown")
     total_solved = stats_context.get("total_solved", 0)
     easy = stats_context.get("easy_solved", 0)
@@ -58,7 +54,15 @@ def ask_mentor(user_message: str, stats_context: dict, history: list) -> str:
         "role": "user",
         "content": user_message
     })
+    return messages
 
+
+def ask_mentor(user_message: str, stats_context: dict, history: list) -> str:
+    """
+    Call Groq with user message + injected stats context + chat history.
+    Returns the AI reply string.
+    """
+    messages = _build_mentor_messages(user_message, stats_context, history)
     client = get_groq_client()
     model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     response = client.chat.completions.create(
@@ -68,6 +72,27 @@ def ask_mentor(user_message: str, stats_context: dict, history: list) -> str:
         max_tokens=1024
     )
 
-
     return response.choices[0].message.content
+
+
+def stream_mentor(user_message: str, stats_context: dict, history: list):
+    """
+    Stream Groq completion tokens for real-time SSE chat responses.
+    """
+    messages = _build_mentor_messages(user_message, stats_context, history)
+    client = get_groq_client()
+    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+    stream = client.chat.completions.create(
+        model=model_name,
+        messages=messages,
+        temperature=0.75,
+        max_tokens=1024,
+        stream=True
+    )
+
+    for chunk in stream:
+        delta = chunk.choices[0].delta.content if chunk.choices else ""
+        if delta:
+            yield delta
+
 

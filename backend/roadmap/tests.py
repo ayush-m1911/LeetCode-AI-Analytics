@@ -69,3 +69,23 @@ class RoadmapTests(TestCase):
         detail_response = self.client.get(f"/api/roadmap/{roadmap.id}/")
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
         self.assertEqual(detail_response.data["goal"], "Graph Algorithms")
+
+    def test_toggle_roadmap_item(self):
+        roadmap = Roadmap.objects.create(
+            user=self.user,
+            goal="Graph Algorithms",
+            roadmap={"week1": {"recommended_problems": ["Number of Islands"]}}
+        )
+        self.client.force_authenticate(user=self.user)
+        toggle_url = f"/api/roadmap/{roadmap.id}/toggle-item/"
+
+        # Toggle item ON
+        res1 = self.client.patch(toggle_url, {"item_id": "week1-Number of Islands"}, format="json")
+        self.assertEqual(res1.status_code, status.HTTP_200_OK)
+        self.assertIn("week1-Number of Islands", res1.data["completed_items"])
+
+        # Toggle item OFF
+        res2 = self.client.patch(toggle_url, {"item_id": "week1-Number of Islands"}, format="json")
+        self.assertEqual(res2.status_code, status.HTTP_200_OK)
+        self.assertNotIn("week1-Number of Islands", res2.data["completed_items"])
+

@@ -46,3 +46,14 @@ class MentorTests(TestCase):
         del_resp = self.client.delete(self.chat_url)
         self.assertEqual(del_resp.status_code, status.HTTP_200_OK)
         self.assertEqual(ChatMessage.objects.filter(session=session).count(), 0)
+
+    @patch("mentor.views.stream_mentor")
+    def test_stream_chat(self, mock_stream):
+        mock_stream.return_value = iter(["Hello", " world", "!"])
+        self.client.force_authenticate(user=self.user)
+
+        payload = {"message": "Give me a quick tip"}
+        response = self.client.post("/api/mentor/chat/stream/", payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response["Content-Type"], "text/event-stream")
+

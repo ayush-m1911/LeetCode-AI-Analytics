@@ -17,6 +17,8 @@ export default function Roadmap() {
   const navigate = useNavigate();
   const [goal, setGoal] = useState("");
   const [roadmap, setRoadmap] = useState(null);
+  const [roadmapId, setRoadmapId] = useState(null);
+  const [completedItems, setCompletedItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [exampleIdx, setExampleIdx] = useState(0);
@@ -41,10 +43,12 @@ export default function Roadmap() {
     setLoading(true);
     setError("");
     setRoadmap(null);
+    setCompletedItems([]);
 
     try {
       const { data } = await api.post("/roadmap/generate/", { goal });
       setRoadmap(data.roadmap);
+      setRoadmapId(data.id || null);
       // Store timestamp for Home page Recent Activity
       localStorage.setItem("lastRoadmapGenerated", new Date().toISOString());
     } catch (err) {
@@ -57,6 +61,22 @@ export default function Roadmap() {
       setLoading(false);
     }
   };
+
+  const handleToggleItem = async (itemId) => {
+    setCompletedItems((prev) => {
+      const next = prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId];
+      return next;
+    });
+
+    if (roadmapId) {
+      try {
+        await api.patch(`/roadmap/${roadmapId}/toggle-item/`, { item_id: itemId });
+      } catch {}
+    }
+  };
+
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !loading) generateRoadmap();
@@ -201,8 +221,11 @@ export default function Roadmap() {
                     weekKey={week}
                     data={data}
                     index={i}
+                    completedItems={completedItems}
+                    onToggleItem={handleToggleItem}
                   />
                 ))}
+
               </div>
             </div>
 

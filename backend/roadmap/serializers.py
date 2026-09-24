@@ -12,7 +12,8 @@ class GenerateRoadmapSerializer(
 class RoadmapListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Roadmap
-        fields = ['id', 'goal', 'created_at', 'ranking', 'total_solved', 'weak_topics', 'strong_topics']
+        fields = ['id', 'goal', 'created_at', 'ranking', 'total_solved', 'weak_topics', 'strong_topics', 'completed_items']
+
 
 
 class RoadmapDetailSerializer(serializers.ModelSerializer):

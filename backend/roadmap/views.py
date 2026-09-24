@@ -91,4 +91,33 @@ class RoadmapDetailView(APIView):
         except Roadmap.DoesNotExist:
             return Response({"error": "Roadmap not found."}, status=status.HTTP_404_NOT_FOUND)
         serializer = RoadmapDetailSerializer(roadmap)
-        return Response(serializer.data)
+        return Response(serializer.data)
+
+
+class ToggleRoadmapItemView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        try:
+            roadmap = Roadmap.objects.get(pk=pk, user=request.user)
+        except Roadmap.DoesNotExist:
+            return Response({"error": "Roadmap not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        item_id = request.data.get("item_id")
+        if not item_id:
+            return Response({"error": "item_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        completed = list(roadmap.completed_items or [])
+        if item_id in completed:
+            completed.remove(item_id)
+        else:
+            completed.append(item_id)
+
+        roadmap.completed_items = completed
+        roadmap.save(update_fields=["completed_items"])
+
+        return Response({
+            "id": roadmap.id,
+            "completed_items": roadmap.completed_items,
+        })
+

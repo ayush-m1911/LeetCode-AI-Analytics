@@ -39,29 +39,99 @@ export default function Mentor() {
     if (!msg || loading) return;
 
     const userMsg = { role: "user", content: msg, timestamp: new Date().toISOString(), id: Date.now() };
-    setMessages((prev) => [...prev, userMsg]);
+    const tempAiId = Date.now() + 1;
+    setMessages((prev) => [...prev, userMsg, { id: tempAiId, role: "assistant", content: "", timestamp: new Date().toISOString(), _isStreaming: true }]);
     setInput("");
     setLoading(true);
 
     // Reset textarea height
     if (textareaRef.current) textareaRef.current.style.height = "48px";
 
+    const apiBase = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/";
+    const streamUrl = `${apiBase.replace(/\/$/, "")}/mentor/chat/stream/`;
+
     try {
-      const res = await api.post("/mentor/chat/", { message: msg });
-      const aiMsg = res.data.message;
-      setMessages((prev) => [...prev, { ...aiMsg, _isNew: true }]);
-    } catch (err) {
-      setMessages((prev) => [...prev, {
-        id: Date.now() + 1,
-        role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
-        timestamp: new Date().toISOString(),
-        _isNew: true,
-      }]);
+      const response = await fetch(streamUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access") || ""}`,
+        },
+        body: JSON.stringify({ message: msg }),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error("Stream connection failed");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let streamedContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const textChunk = decoder.decode(value, { stream: true });
+        const lines = textChunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.chunk) {
+                streamedContent += data.chunk;
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === tempAiId ? { ...m, content: streamedContent } : m
+                  )
+                );
+              } else if (data.error) {
+                streamedContent += `\n\n⚠️ ${data.error}`;
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === tempAiId ? { ...m, content: streamedContent } : m
+                  )
+                );
+              }
+            } catch {}
+          }
+        }
+      }
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === tempAiId ? { ...m, _isStreaming: false } : m
+        )
+      );
+    } catch {
+      // Fallback to regular API call if streaming is unavailable
+      try {
+        const res = await api.post("/mentor/chat/", { message: msg });
+        const aiMsg = res.data.message;
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === tempAiId ? { ...aiMsg, _isNew: true } : m
+          )
+        );
+      } catch {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === tempAiId
+              ? {
+                  id: tempAiId,
+                  role: "assistant",
+                  content: "Sorry, I encountered an error. Please check your connection and try again.",
+                  timestamp: new Date().toISOString(),
+                }
+              : m
+          )
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
